@@ -3,3 +3,4 @@ beautifulsoup4
 scikit-learn
 apscheduler
 openai
+sentence-transformers
