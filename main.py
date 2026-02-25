@@ -5,9 +5,8 @@ from scrapers.ted import scrape_ted
 from scrapers.findatender import scrape_findatender
 from ai.embedding import calculate_similarity
 from ai.clustering import cluster_tenders
+from emailer import send_email
 
-
-#Exclusion filter (removes hardware & irrelevant tenders)
 EXCLUDE_KEYWORDS = [
     "laptop", "printer", "equipment",
     "hard drive", "camera", "vehicle",
@@ -15,13 +14,14 @@ EXCLUDE_KEYWORDS = [
     "transport", "furniture"
 ]
 
+
 def is_excluded(text):
     text = text.lower()
     return any(word in text for word in EXCLUDE_KEYWORDS)
 
 
 async def run():
-    print("Starting Procurement Intelligence Bot")
+    print("🚀 Starting Procurement Intelligence Bot")
 
     init_db()
 
@@ -41,7 +41,7 @@ async def run():
             tender["title"] + " " + tender["description"]
         )
 
-    # Apply similarity + exclusion filtering
+    # Apply filtering
     relevant = [
         t for t in all_tenders
         if t["similarity"] > 0.24 and
@@ -50,44 +50,23 @@ async def run():
 
     print(f"Relevant after filtering: {len(relevant)}")
 
-    # Cluster if enough tenders
     if len(relevant) >= 3:
         relevant = cluster_tenders(relevant)
-    else:
-        print("Not enough tenders to cluster.")
 
-    print(f"Final relevant tenders: {len(relevant)}")
-
-    # Save to DB
+    # Save to DB (optional persistence per run)
     for tender in relevant:
         save_tender(tender)
 
     print("Saved to SQLite database.")
+
+    # 🔥 SEND EMAIL DIRECTLY FROM LIST
+    if relevant:
+        send_email(relevant)
+    else:
+        print("No relevant tenders to email.")
+
     return relevant
 
 
 if __name__ == "__main__":
     asyncio.run(run())
-
-    # 🔹 Show Top Results
-    import sqlite3
-
-    conn = sqlite3.connect("tenders.db")
-    c = conn.cursor()
-
-    c.execute("""
-        SELECT title, similarity, link
-        FROM tenders
-        ORDER BY similarity DESC
-        LIMIT 10
-    """)
-
-    rows = c.fetchall()
-
-    print("\nTop ERP-Relevant Tenders:")
-    for r in rows:
-        print(f"\n{r[0]}")
-        print(f"Score: {r[1]:.3f}")
-        print(f"Link: {r[2]}")
-
-    conn.close()

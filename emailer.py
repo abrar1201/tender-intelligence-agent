@@ -1,10 +1,10 @@
 import smtplib
+import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import sqlite3
 
-SENDER_EMAIL = "shahabrar1201@gmail.com"
-SENDER_PASSWORD = "lvxwlzmvetwcqowu"
+SENDER_EMAIL = os.environ.get("EMAIL_USER")
+SENDER_PASSWORD = os.environ.get("EMAIL_PASS")
 
 RECIPIENTS = [
     "arjun.kondisetti@purplemavens.com",
@@ -12,37 +12,27 @@ RECIPIENTS = [
     "srikanth@purplemavens.com"
 ]
 
-def send_daily_summary():
-    conn = sqlite3.connect("tenders.db")
-    c = conn.cursor()
 
-    c.execute("""
-    SELECT title, similarity, link, source
-    FROM tenders
-    WHERE created_at >= datetime('now', '-1 day')
-    ORDER BY similarity DESC
-""")
-    rows = c.fetchall()
-    conn.close()
+def send_email(tenders):
 
-    if not rows:
-        print("No new tenders to email.")
+    if not SENDER_EMAIL or not SENDER_PASSWORD:
+        print("Email credentials not set.")
         return
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Daily Tender Intelligence Report"
+    msg["Subject"] = "Tender Intelligence Report"
     msg["From"] = SENDER_EMAIL
     msg["To"] = ", ".join(RECIPIENTS)
 
-    html = "<h2>Daily ERP-Relevant Tenders</h2><ul>"
+    html = "<h2>ERP-Relevant Tenders</h2><ul>"
 
-    for r in rows:
+    for t in tenders:
         html += f"""
         <li>
-            <b>{r[0]}</b><br>
-            Score: {round(r[1], 3)}<br>
-            Source: {r[3]}<br>
-            <a href="{r[2]}">{r[2]}</a>
+            <b>{t['title']}</b><br>
+            Score: {round(t['similarity'], 3)}<br>
+            Source: {t.get('source', 'N/A')}<br>
+            <a href="{t['link']}">{t['link']}</a>
         </li><br>
         """
 
@@ -50,9 +40,13 @@ def send_daily_summary():
 
     msg.attach(MIMEText(html, "html"))
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
 
-    print("Daily email sent successfully.")
+        print("✅ Email sent successfully.")
+
+    except Exception as e:
+        print("❌ Email failed:", e)

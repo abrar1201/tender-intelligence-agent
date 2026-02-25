@@ -2,12 +2,13 @@ import sqlite3
 
 DB_NAME = "tenders.db"
 
+
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
 
     c.execute("""
-       CREATE TABLE IF NOT EXISTS tenders (
+        CREATE TABLE IF NOT EXISTS tenders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT,
             description TEXT,
@@ -42,6 +43,7 @@ def save_tender(tender):
         ))
 
         conn.commit()
+
     except Exception as e:
         print("DB error:", e)
 
