@@ -20,9 +20,9 @@ def scrape_findatender():
             print(f"Scraping FTS page {page}...")
 
             params = {
-                "keyword": "ERP OR SAP OR digital transformation OR enterprise system",
-                "page": page
-            }
+    "keyword": "ERP OR SAP OR Oracle OR Dynamics 365 OR Microsoft Dynamics OR D365 OR digital transformation OR enterprise system",
+    "page": page
+}
 
             response = requests.get(search_url, params=params, headers=headers, timeout=15)
             soup = BeautifulSoup(response.text, "html.parser")

@@ -23,10 +23,23 @@ Core business systems implementation.
 profile_embedding = model.encode(MAZE_PROFILE, convert_to_tensor=True)
 
 KEYWORDS = [
-    "ERP", "SAP", "Oracle", "Dynamics", "CRM",
-    "HCM", "SCM", "EAM", "enterprise system",
-    "digital transformation", "system integrator",
-    "core system", "business systems"
+    "ERP",
+    "SAP",
+    "Oracle",
+    "Microsoft Dynamics 365",
+    "MS Dynamics 365",
+    "Dynamics 365",
+    "D365",
+    "Dynamics CRM",
+    "CRM",
+    "HCM",
+    "SCM",
+    "EAM",
+    "enterprise system",
+    "digital transformation",
+    "system integrator",
+    "core system",
+    "business systems"
 ]
 
 def keyword_boost(text):
@@ -34,7 +47,10 @@ def keyword_boost(text):
     score = 0
     for kw in KEYWORDS:
         if kw.lower() in text_lower:
-            score += 0.05
+            if "dynamics" in kw.lower():
+                score += 0.1
+            else:
+                score += 0.05
     return score
 
 def calculate_similarity(text):
