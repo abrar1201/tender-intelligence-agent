@@ -9,7 +9,8 @@ SENDER_PASSWORD = os.environ.get("EMAIL_PASS")
 RECIPIENTS = [
     "arjun.kondisetti@purplemavens.com",
     "hannahboden501@gmail.com",
-    "srikanth@purplemavens.com"
+    "srikanth@purplemavens.com",
+    "sannadate@gmail.com"
 ]
 
 
