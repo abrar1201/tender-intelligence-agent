@@ -2,7 +2,7 @@ name: Run Tender Intelligence Agent
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '30 3 * * *'
   workflow_dispatch:
 
 jobs:
