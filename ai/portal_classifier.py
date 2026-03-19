@@ -15,15 +15,16 @@ KEYWORDS = ["erp", "crm", "hcm", "scm", "eam",
 
 def is_relevant(t):
     text = ((t.get("title") or "") + " " + (t.get("description") or "")).lower()
-
     keyword_match = any(k in text for k in KEYWORDS)
     similarity = t.get("similarity", None)
 
-    # ✅ If similarity NOT present (UK / FTS), rely on keywords ONLY
+    # ✅ UK and FTS — keyword only, don't penalise with similarity threshold
+    if t.get("source") in ("uk", "findatender"):
+        return keyword_match
+
     if similarity is None:
         return keyword_match
 
-    # ✅ If similarity present (AI portals)
     if keyword_match and similarity > 0.10:
         return True
 

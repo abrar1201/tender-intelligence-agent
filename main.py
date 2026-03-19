@@ -115,7 +115,9 @@ async def run():
 
         # 🔥 AI similarity
             tender["similarity"] = calculate_similarity(text)
-
+        except Exception as e:
+            print("Similarity error:", e)
+            tender["similarity"] = None
         # 🔥 CATEGORY TAGGING (ADD HERE)
             lower_text = text.lower()
             tender["category"] = [
