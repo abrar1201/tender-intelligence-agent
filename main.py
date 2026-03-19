@@ -1,69 +1,119 @@
 import asyncio
 from database import init_db, save_tender
+from portal_db import init_portal_table
 from scrapers.uk import scrape_uk
 from scrapers.ted import scrape_ted
 from scrapers.findatender import scrape_findatender
+from scrapers.search_discovery import search_duckduckgo
+from scrapers.portal_discovery import discover_portals
+from scrapers.portal_crawler import crawl_portals
 from ai.embedding import calculate_similarity
-from ai.clustering import cluster_tenders
 from emailer import send_email
+from scrapers.samgov import scrape_samgov
+from scrapers.worldbank import scrape_worldbank
+from scrapers.adb import scrape_adb
+from scrapers.austender import scrape_austender
+from scrapers.canada import scrape_canada
+from scrapers.globaltenders import scrape_globaltenders
 
-EXCLUDE_KEYWORDS = [
-    "laptop", "printer", "equipment",
-    "hard drive", "camera", "vehicle",
-    "construction", "building", "repair",
-    "transport", "furniture"
-]
+ENABLE_GLOBAL_DISCOVERY = True
 
 
-def is_excluded(text):
-    text = text.lower()
-    return any(word in text for word in EXCLUDE_KEYWORDS)
+def rank_tenders(tenders):
+
+    return sorted(
+        tenders,
+        key=lambda x: x.get("similarity", 0),
+        reverse=True
+    )
 
 
 async def run():
-    print("🚀 Starting Procurement Intelligence Bot")
+
+    print("Starting Procurement Intelligence Bot")
 
     init_db()
+    init_portal_table()
 
-    # Run scrapers in parallel
     uk_task = asyncio.to_thread(scrape_uk)
     ted_task = asyncio.to_thread(scrape_ted)
     fts_task = asyncio.to_thread(scrape_findatender)
 
-    results = await asyncio.gather(uk_task, ted_task, fts_task)
+    results = await asyncio.gather(
+        uk_task,
+        ted_task,
+        fts_task
+    )
 
     all_tenders = results[0] + results[1] + results[2]
-    print(f"Total scraped: {len(all_tenders)}")
 
-    # Calculate similarity
+    discovered_links = []
+
+    if ENABLE_GLOBAL_DISCOVERY:
+
+        queries = [
+
+            '"ERP implementation tender"',
+            '"digital transformation RFP"',
+            '"enterprise system procurement"',
+            '"Dynamics 365 implementation RFP"',
+            '"SAP implementation tender"',
+            '"ERP tender site:.gov"',
+            '"ERP tender site:.gov.uk"',
+            '"ERP tender site:.gov.in"'
+        ]
+
+        for q in queries:
+
+            links = search_duckduckgo(q)
+            discovered_links.extend(links)
+
+        new_portals = discover_portals(discovered_links)
+
+        print("New portals discovered:", len(new_portals))
+
+        portal_tenders = crawl_portals()
+
+        print("Portal tenders scraped:", len(portal_tenders))
+
+        # all_tenders.extend(portal_tenders)
+        print("Checking SAM.gov...")
+        all_tenders.extend(scrape_samgov())
+
+        print("Checking World Bank...")
+        all_tenders.extend(scrape_worldbank())
+
+        print("Checking Asian Development Bank...")
+        all_tenders.extend(scrape_adb())
+
+        print("Checking AusTender...")
+        all_tenders.extend(scrape_austender())
+
+        print("Checking Canada Buyandsell...")
+        all_tenders.extend(scrape_canada())
+        
+        print("Checking GlobalTenders...")
+        all_tenders.extend(scrape_globaltenders())
+
+    # similarity scoring
     for tender in all_tenders:
-        tender["similarity"] = calculate_similarity(
-            tender["title"] + " " + tender["description"]
-        )
 
-    # Apply filtering
-    relevant = [
-        t for t in all_tenders
-        if t["similarity"] > 0.24 and
-        not is_excluded(t["title"] + " " + t["description"])
-    ]
+        text = f"{tender.get('title','')} {tender.get('description','')}"
 
-    print(f"Relevant after filtering: {len(relevant)}")
+        tender["similarity"] = calculate_similarity(text)
 
-    if len(relevant) >= 3:
-        relevant = cluster_tenders(relevant)
+    relevant = [t for t in all_tenders if t["similarity"] > 0.25]
 
-    # Save to DB (optional persistence per run)
+    relevant = rank_tenders(relevant)
+
     for tender in relevant:
+
         save_tender(tender)
 
-    print("Saved to SQLite database.")
+    print("Saved to database:", len(relevant))
 
-    # 🔥 SEND EMAIL DIRECTLY FROM LIST
     if relevant:
         send_email(relevant)
-    else:
-        print("No relevant tenders to email.")
 
     return relevant
 

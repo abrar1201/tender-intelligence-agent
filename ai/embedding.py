@@ -2,43 +2,28 @@ from sentence_transformers import SentenceTransformer, util
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-MAZE_PROFILE = """
-Enterprise Resource Planning (ERP) systems.
-SAP implementation or migration.
-Oracle ERP Cloud.
-Microsoft Dynamics 365.
-Enterprise Asset Management (EAM).
-Supply Chain Management (SCM).
-Human Capital Management (HCM).
-Customer Relationship Management (CRM).
-Digital transformation programmes.
-Legacy system replacement.
-Enterprise IT modernization.
-System integrator services.
-Government ERP upgrade.
-Core business systems implementation.
+PROFILE = """
+
+ERP implementation
+SAP
+Oracle ERP
+Microsoft Dynamics
+enterprise systems
+digital transformation
+system integrator
+
 """
 
+profile_embedding = model.encode(PROFILE, convert_to_tensor=True)
 
-profile_embedding = model.encode(MAZE_PROFILE, convert_to_tensor=True)
-
-KEYWORDS = [
-    "ERP", "SAP", "Oracle", "Dynamics", "CRM",
-    "HCM", "SCM", "EAM", "enterprise system",
-    "digital transformation", "system integrator",
-    "core system", "business systems"
-]
-
-def keyword_boost(text):
-    text_lower = text.lower()
-    score = 0
-    for kw in KEYWORDS:
-        if kw.lower() in text_lower:
-            score += 0.05
-    return score
 
 def calculate_similarity(text):
-    tender_embedding = model.encode(text, convert_to_tensor=True)
-    score = float(util.cos_sim(profile_embedding, tender_embedding))
-    score += keyword_boost(text)
+
+    if not text:
+        return 0
+
+    emb = model.encode(text, convert_to_tensor=True)
+
+    score = float(util.cos_sim(profile_embedding, emb))
+
     return score

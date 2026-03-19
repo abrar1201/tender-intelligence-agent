@@ -1,20 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://canadabuys.canada.ca/en/tender-opportunities"
+URL = "https://www.adb.org/work-with-us/procurement"
 
 
-def scrape_canada():
+def scrape_adb():
 
     tenders = []
 
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
     try:
 
-        r = requests.get(URL, headers=headers)
+        r = requests.get(URL)
         soup = BeautifulSoup(r.text, "html.parser")
 
         links = soup.select("a")
@@ -23,19 +19,19 @@ def scrape_canada():
 
             text = link.text.strip()
 
-            if len(text) > 20:
+            if "tender" in text.lower() or "procurement" in text.lower():
 
                 tenders.append({
                     "title": text,
-                    "organization": "Canada Government",
+                    "organization": "Asian Development Bank",
                     "deadline": "",
                     "description": text,
                     "url": link.get("href")
                 })
 
     except Exception as e:
-        print("Canada error:", e)
+        print("ADB error:", e)
 
-    print("Canada scraped:", len(tenders))
+    print("ADB scraped:", len(tenders))
 
     return tenders

@@ -1,53 +1,72 @@
 import smtplib
-import os
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-SENDER_EMAIL = os.environ.get("EMAIL_USER")
-SENDER_PASSWORD = os.environ.get("EMAIL_PASS")
 
-RECIPIENTS = [
-    "arjun.kondisetti@purplemavens.com",
-    "hannahboden501@gmail.com",
-    "srikanth@purplemavens.com",
-    "sannadate@gmail.com"
-]
+def clean_text(value):
+    """
+    Some APIs return text in multiple languages as dictionaries.
+    This function extracts the English version if available.
+    """
+
+    if isinstance(value, dict):
+        return value.get("en") or list(value.values())[0]
+
+    return value
 
 
 def send_email(tenders):
 
-    if not SENDER_EMAIL or not SENDER_PASSWORD:
-        print("Email credentials not set.")
+    if not tenders:
+        print("No relevant tenders to email.")
         return
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Tender Intelligence Report"
-    msg["From"] = SENDER_EMAIL
-    msg["To"] = ", ".join(RECIPIENTS)
-
-    html = "<h2>ERP-Relevant Tenders</h2><ul>"
+    html = """
+    <h2>New Procurement Opportunities</h2>
+    <hr>
+    """
 
     for t in tenders:
+
+        title = clean_text(t.get("title", "No title"))
+        org = clean_text(t.get("organization", "Unknown organization"))
+        deadline = clean_text(t.get("deadline", "Not specified"))
+        link = t.get("url") or t.get("link", "#")
+
+        if link and not link.startswith("http"):
+            link = "https://" + link
+
         html += f"""
-        <li>
-            <b>{t['title']}</b><br>
-            Score: {round(t['similarity'], 3)}<br>
-            Source: {t.get('source', 'N/A')}<br>
-            <a href="{t['link']}">{t['link']}</a>
-        </li><br>
+        <p>
+        <b>{title}</b><br>
+        Organization: {org}<br>
+        Deadline: {deadline}<br>
+        <a href="{link}">🔗 View Tender</a>
+        </p>
+        <hr>
         """
 
-    html += "</ul>"
+    msg = MIMEText(html, "html")
 
-    msg.attach(MIMEText(html, "html"))
+    msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
+    msg["From"] = "shahabrar1201@gmail.com"
+    msg["To"] = "receiver@gmail.com"  
 
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
 
-        print("✅ Email sent successfully.")
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+
+        server.login("shahabrar1201@gmail.com", "lvxwlzmvetwcqowu")
+
+        server.sendmail(
+            "shahabrar1201@gmail.com",
+            "receiver@gmail.com",
+            msg.as_string()
+        )
+
+        server.quit()
+
+        print("Email sent successfully.")
 
     except Exception as e:
-        print("❌ Email failed:", e)
+        print("Email error:", e)
