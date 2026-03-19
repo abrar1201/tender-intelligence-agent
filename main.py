@@ -105,7 +105,7 @@ async def run():
     filtered.sort(key=lambda x: x["similarity"], reverse=True)
     relevant = filtered[:15]
 
-        tender["similarity"] = calculate_similarity(text)
+    tender["similarity"] = calculate_similarity(text)
 
     relevant = [t for t in all_tenders if t["similarity"] > 0.25]
 
