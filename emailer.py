@@ -92,6 +92,9 @@ def send_email(tenders):
 
     receivers = [
     "hannahboden501@gmail.com",
+    "arjun.kondisetti@purplemavens.com",
+    "srikanth@purplemavens.com",
+    "sannadate@gmail.com"
 ]
 
     msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
