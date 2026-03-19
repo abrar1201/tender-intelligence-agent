@@ -47,7 +47,7 @@ def send_email(tenders):
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
 
-        print("✅ Email sent successfully.")
+        print("Email sent successfully.")
 
     except Exception as e:
-        print("❌ Email failed:", e)
+        print("Email failed:", e)

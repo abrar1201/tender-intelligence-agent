@@ -21,7 +21,7 @@ def is_excluded(text):
 
 
 async def run():
-    print("🚀 Starting Procurement Intelligence Bot")
+    print("Starting Procurement Intelligence Bot")
 
     init_db()
 
@@ -42,24 +42,24 @@ async def run():
         )
 
     # Apply filtering
-    relevant = [
-        t for t in all_tenders
-        if t["similarity"] > 0.24 and
-        not is_excluded(t["title"] + " " + t["description"])
-    ]
+    filtered = [
+    t for t in all_tenders
+    if not is_excluded(t["title"] + " " + t["description"])
+]
+    filtered.sort(key=lambda x: x["similarity"], reverse=True)
+    relevant = filtered[:15]
 
     print(f"Relevant after filtering: {len(relevant)}")
 
     if len(relevant) >= 3:
         relevant = cluster_tenders(relevant)
 
-    # Save to DB (optional persistence per run)
+    # Save to DB
     for tender in relevant:
         save_tender(tender)
 
     print("Saved to SQLite database.")
 
-    # 🔥 SEND EMAIL DIRECTLY FROM LIST
     if relevant:
         send_email(relevant)
     else:
