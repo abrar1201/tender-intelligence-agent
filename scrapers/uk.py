@@ -5,7 +5,9 @@ def scrape_uk():
     print("Checking UK (Contracts Finder)...")
 
     url = "https://www.contractsfinder.service.gov.uk/Search/Results"
-    params = {"keyword": "software IT ERP CRM EAM"}
+    params = {
+    "keyword": "software IT ERP CRM EAM SAP Oracle Dynamics 365 Microsoft Dynamics D365"
+}
     headers = {"User-Agent": "Mozilla/5.0"}
 
     tenders = []
