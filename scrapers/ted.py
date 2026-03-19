@@ -1,41 +1,85 @@
 import requests
 
+URL = "https://api.ted.europa.eu/v3/notices/search"
+
+HEADERS = {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+}
+
+QUERIES = [
+    'FT~"enterprise resource planning" AND notice-type=cn-standard',
+    'FT~"ERP implementation" AND notice-type=cn-standard',
+    'FT~"CRM system" AND notice-type=cn-standard',
+    'FT~"human capital management" AND notice-type=cn-standard',
+    'FT~"HR management system" AND notice-type=cn-standard',
+    'FT~"payroll system" AND notice-type=cn-standard',
+    'FT~"fleet management system" AND notice-type=cn-standard',
+    'FT~"asset management system" AND notice-type=cn-standard',
+    'FT~"supply chain management" AND notice-type=cn-standard',
+    'FT~"library management system" AND notice-type=cn-standard',
+    'FT~"workforce management" AND notice-type=cn-standard',
+    'FT~"financial management system" AND notice-type=cn-standard',
+    'FT~"dynamics 365" AND notice-type=cn-standard',
+    'FT~"SAP implementation" AND notice-type=cn-standard',
+]
+
 
 def scrape_ted():
     print("Checking TED (EU)...")
-
     tenders = []
 
-    try:
-        url = "https://ted.europa.eu/api/v2/notices/search"
+    for query in QUERIES:
+        try:
+            # ✅ Removed sortField and sortOrder — not supported by this endpoint
+            payload = {
+                "query": query,
+                "fields": ["ND", "TI", "AU", "PD"],
+                "page": 1,
+                "limit": 10
+            }
 
-        params = {
-            "limit": 20,
-            "sort": "publication-date-desc"
-        }
+            res = requests.post(URL, json=payload, headers=HEADERS, timeout=15)
 
-        res = requests.get(url, params=params, timeout=10)
+            if res.status_code != 200:
+                print(f"TED error {res.status_code} for query '{query[:50]}': {res.text[:200]}")
+                continue
 
-        if res.status_code != 200:
-            print("TED API failed")
-            return []
+            data = res.json()
+            notices = data.get("notices", []) or data.get("results", [])
 
-        data = res.json()
+            for item in notices:
+                notice_id = item.get("ND", "")
+                title = item.get("TI", "No title")
+                authority = item.get("AU", "")
 
-        for item in data.get("results", []):
-            title = item.get("title", "No title")
-            description = item.get("shortDescription", "")
-            link = item.get("url", "")
+                # TED returns fields as dicts with language keys e.g. {"ENG": "..."}
+                if isinstance(title, dict):
+                    title = title.get("ENG") or next(iter(title.values()), "No title")
 
-            tenders.append({
-                "title": title,
-                "description": description,
-                "url": link
-            })
+                if isinstance(authority, dict):
+                    authority = authority.get("ENG") or next(iter(authority.values()), "")
 
-        print(f"TED scraped: {len(tenders)}")
+                url = f"https://ted.europa.eu/en/notice/{notice_id}" if notice_id else ""
 
-    except Exception as e:
-        print("TED error:", e)
+                tenders.append({
+                    "title": title,
+                    "description": f"Contracting authority: {authority}" if authority else "",
+                    "url": url,
+                    "source": "ted"
+                })
 
-    return tenders
+        except Exception as e:
+            print(f"TED error for query '{query[:50]}':", e)
+
+    # Deduplicate by URL
+    seen = set()
+    unique = []
+    for t in tenders:
+        key = t.get("url") or t.get("title")
+        if key not in seen:
+            seen.add(key)
+            unique.append(t)
+
+    print(f"TED scraped: {len(unique)}")
+    return unique
