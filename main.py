@@ -1,7 +1,10 @@
 import asyncio
 import sys
 import os
+from collections import Counter, defaultdict
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from database import init_db, save_tender
 from portal_db import init_portal_table
 from scrapers.uk import scrape_uk
@@ -19,15 +22,51 @@ from scrapers.austender import scrape_austender
 from scrapers.canada import scrape_canada
 from scrapers.globaltenders import scrape_globaltenders
 from ai.portal_classifier import is_relevant
+
 ENABLE_GLOBAL_DISCOVERY = True
 
 
 def rank_tenders(tenders):
     return sorted(
         tenders,
-        key=lambda x: x.get("similarity", 0),
+        key=lambda x: x.get("similarity") or 0,
         reverse=True
     )
+
+
+def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
+    """
+    Guarantees at least `per_source_min` tenders per source,
+    then fills remaining slots with highest ranked tenders overall.
+    """
+    buckets = defaultdict(list)
+    for t in tenders:
+        buckets[t.get("source", "unknown")].append(t)
+
+    selected = []
+
+    # First pass — guarantee minimum per source
+    for source, items in buckets.items():
+        selected.extend(items[:per_source_min])
+
+    # Deduplicate preserving order
+    seen = set()
+    deduped = []
+    for t in selected:
+        key = t.get("url") or t.get("title")
+        if key not in seen:
+            seen.add(key)
+            deduped.append(t)
+
+    # Second pass — fill remaining slots with highest ranked remaining
+    already_selected = {t.get("url") or t.get("title") for t in deduped}
+    remaining = [
+        t for t in tenders
+        if (t.get("url") or t.get("title")) not in already_selected
+    ]
+    deduped.extend(remaining[:total - len(deduped)])
+
+    return rank_tenders(deduped)[:total]
 
 
 async def run():
@@ -42,17 +81,12 @@ async def run():
     ted_task = asyncio.to_thread(scrape_ted)
     fts_task = asyncio.to_thread(scrape_findatender)
 
-    results = await asyncio.gather(
-        uk_task,
-        ted_task,
-        fts_task
-    )
+    results = await asyncio.gather(uk_task, ted_task, fts_task)
 
     all_tenders = results[0] + results[1] + results[2]
 
     discovered_links = []
 
-    # Global discovery 
     if ENABLE_GLOBAL_DISCOVERY:
 
         queries = [
@@ -95,60 +129,71 @@ async def run():
 
         print("Checking GlobalTenders...")
         all_tenders.extend(scrape_globaltenders())
+
+    # Remove tenders with no title and no description
     all_tenders = [
-    t for t in all_tenders
-    if (t.get("title") or t.get("description"))
-]
-    # STEP 1: Calculate similarity
-    # STEP 1: Calculate similarity + category
-    for tender in all_tenders:
-        try:
-            title = tender.get("title") or ""
-            description = tender.get("description") or ""
-
-            text = f"{title} {description}".strip()
-
-            if not text:
-                tender["similarity"] = 0
-                tender["category"] = []
-                continue
-
-        # 🔥 AI similarity
-            tender["similarity"] = calculate_similarity(text)
-        except Exception as e:
-            print("Similarity error:", e)
-            tender["similarity"] = None
-        # 🔥 CATEGORY TAGGING (ADD HERE)
-            lower_text = text.lower()
-            tender["category"] = [
-                k for k in ["erp", "crm", "hcm", "scm", "eam"]
-                if k in lower_text
-            ]
-
-        except Exception as e:
-            print("Similarity error:", e)
-            tender["similarity"] = 0
-            tender["category"] = []
-
-    # # STEP 2: Filter relevant ones
-    relevant = [
         t for t in all_tenders
-        if is_relevant(t)
+        if (t.get("title") or t.get("description"))
     ]
 
-    # STEP 3: Rank tenders
-    relevant = rank_tenders(relevant)
+    print(f"\nTotal tenders before filtering: {len(all_tenders)}")
 
-    # STEP 4: Take top 15
-    relevant = relevant[:15]
+    # STEP 1: Calculate similarity + category
+    for tender in all_tenders:
+        title = tender.get("title") or ""
+        description = tender.get("description") or ""
+        text = f"{title} {description}".strip()
+        lower_text = text.lower()
 
-    # STEP 5: Save to DB
+        # Category tagging — always runs regardless of similarity
+        tender["category"] = [
+            k for k in ["erp", "crm", "hcm", "scm", "eam"]
+            if k in lower_text
+        ]
+
+        if not text:
+            tender["similarity"] = None  # None triggers keyword-only path in is_relevant
+            continue
+
+        try:
+            tender["similarity"] = calculate_similarity(text)
+        except Exception as e:
+            print(f"Similarity error for '{title[:50]}': {e}")
+            tender["similarity"] = None  # None, not 0 — so keyword-only path fires in is_relevant
+
+    # STEP 2: Filter relevant ones
+    relevant = [t for t in all_tenders if is_relevant(t)]
+
+    # Debug — source breakdown
+    print("\n--- SOURCE BREAKDOWN AFTER FILTER ---")
+    source_counts = Counter(t.get("source") for t in relevant)
+    print(source_counts)
+
+    print("\n--- UK/FTS SAMPLE ---")
+    found_sample = False
+    for t in relevant:
+        if t.get("source") in ("uk", "findatender"):
+            print(f"  source={t.get('source')} | sim={t.get('similarity')} | title={t.get('title', '')[:60]}")
+            found_sample = True
+    if not found_sample:
+        print("  NONE passed the filter")
+
+    print("\n--- TOP 15 SOURCES (before balance) ---")
+    top15_unbalanced = rank_tenders(relevant)[:15]
+    print(Counter(t.get("source") for t in top15_unbalanced))
+    print("--- END DEBUG ---\n")
+
+    # STEP 3: Rank with source balancing — guarantees UK/FTS are represented
+    relevant = pick_top_with_source_balance(relevant, total=15, per_source_min=3)
+
+    # STEP 4: Save to DB
     for tender in relevant:
         save_tender(tender)
 
     print("Saved to database:", len(relevant))
+    print("Final source breakdown:", Counter(t.get("source") for t in relevant))
 
-    # STEP 6: Send email
+    # STEP 5: Send email
     if relevant:
         send_email(relevant)
     else:
