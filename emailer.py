@@ -1,16 +1,11 @@
 import smtplib
+import os
 from email.mime.text import MIMEText
 
 
 def clean_text(value):
-    """
-    Some APIs return text in multiple languages as dictionaries.
-    This function extracts the English version if available.
-    """
-
     if isinstance(value, dict):
         return value.get("en") or list(value.values())[0]
-
     return value
 
 
@@ -47,13 +42,30 @@ def send_email(tenders):
 
     msg = MIMEText(html, "html")
 
+    sender = os.getenv("EMAIL_USER")
+    password = os.getenv("EMAIL_PASS")
+
+    receiver = sender  # send to yourself
+
     msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
-    msg["From"] = "shahabrar1201@gmail.com"
-    msg["To"] = "receiver@gmail.com"  
+    msg["From"] = sender
+    msg["To"] = receiver
 
     try:
+        print("Connecting to Gmail SMTP...")
 
-        print("Email sent successfully.")
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+
+        print("Logging in...")
+        server.login(sender, password)
+
+        print("Sending email...")
+        server.sendmail(sender, receiver, msg.as_string())
+
+        server.quit()
+
+        print("✅ Email SENT successfully")
 
     except Exception as e:
-        print("Email failed:", e)
+        print("❌ Email FAILED:", e)
