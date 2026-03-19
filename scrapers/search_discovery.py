@@ -6,7 +6,12 @@ def search_duckduckgo(query):
 
     url = "https://html.duckduckgo.com/html/"
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
 
     r = requests.post(url, data={"q": query}, headers=headers)
 

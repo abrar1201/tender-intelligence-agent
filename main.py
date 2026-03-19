@@ -95,17 +95,24 @@ async def run():
 
         print("Checking GlobalTenders...")
         all_tenders.extend(scrape_globaltenders())
-
+    all_tenders = [
+    t for t in all_tenders
+    if (t.get("title") or t.get("description"))
+]
     # STEP 1: Calculate similarity
     for tender in all_tenders:
-
-        text = (
-            tender.get("title", "") + " " +
-            tender.get("description", "")
-        )
-
         try:
+            title = tender.get("title") or ""
+            description = tender.get("description") or ""
+
+            text = f"{title} {description}".strip()
+
+            if not text:
+                tender["similarity"] = 0
+                continue
+
             tender["similarity"] = calculate_similarity(text)
+
         except Exception as e:
             print("Similarity error:", e)
             tender["similarity"] = 0
@@ -113,7 +120,7 @@ async def run():
     # STEP 2: Filter relevant ones
     relevant = [
         t for t in all_tenders
-        if t.get("similarity", 0) > 0.25
+        if t.get("similarity", 0) > 0.15
     ]
 
     # STEP 3: Rank tenders

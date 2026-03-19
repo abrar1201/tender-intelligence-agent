@@ -2,7 +2,7 @@ import requests
 
 URL = "https://api.sam.gov/prod/opportunities/v2/search"
 
-API_KEY = "YOUR_SAM_API_KEY"
+API_KEY = "SAM-739e5225-39db-4aea-927e-1e47ddcbd2f8"
 
 
 def scrape_samgov():
