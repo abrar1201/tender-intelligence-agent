@@ -32,7 +32,8 @@ def scrape_uk():
             tenders.append({
                 "title": title,
                 "description": description,
-                "url": link
+                "url": link,
+                "source": "uk"   # ✅ ADD THIS
             })
 
         print(f"UK scraped: {len(tenders)}")

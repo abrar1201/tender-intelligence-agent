@@ -35,8 +35,9 @@ def scrape_findatender():
                 tenders.append({
                     "title": title,
                     "description": description,
-                    "url": link
-                })
+                    "url": link,
+                    "source": "findatender"   # ✅ ADD THIS
+            })
 
         print(f"FTS scraped total: {len(tenders)}")
 

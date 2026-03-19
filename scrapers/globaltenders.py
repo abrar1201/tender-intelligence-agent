@@ -46,7 +46,8 @@ def scrape_globaltenders():
                 tenders.append({
                     "title": current.get("title", ""),
                     "country": current.get("country", ""),
-                    "url": url
+                    "url": url,
+                    "source": "globaltenders"
                 })
                 current = {}
 

@@ -26,7 +26,8 @@ def scrape_worldbank():
                 "organization": "World Bank",
                 "deadline": "",
                 "description": item.get("docdt"),
-                "url": item.get("url")
+                "url": item.get("url"),
+                "source": "worldbank"
             })
 
     except Exception as e:

@@ -14,16 +14,25 @@ KEYWORDS = ["erp", "crm", "hcm", "scm", "eam",
 # portal_classifier.py
 
 def is_relevant(t):
+
     text = ((t.get("title") or "") + " " + (t.get("description") or "")).lower()
+    similarity = t.get("similarity", 0)
+    source = (t.get("source") or "").lower()
 
     keyword_match = any(k in text for k in KEYWORDS)
-    similarity = t.get("similarity", 0)
 
+    # 🔥 1. Strong enterprise match
     if keyword_match and similarity > 0.10:
         return True
 
+    # 🔥 2. Strong AI match
     if similarity > 0.25:
         return True
+
+    # 🔥 3. SPECIAL RULE: UK + FTS (IMPORTANT)
+    if source in ["uk", "findatender"]:
+        if similarity > 0.05:   # much lower threshold
+            return True
 
     return False
 

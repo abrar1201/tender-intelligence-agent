@@ -28,7 +28,8 @@ def scrape_samgov():
                 "organization": item.get("department"),
                 "deadline": item.get("responseDeadLine"),
                 "description": item.get("description"),
-                "url": item.get("uiLink")
+                "url": item.get("uiLink"),
+                "source": "samgov"
             })
 
     except Exception as e:

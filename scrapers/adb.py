@@ -26,7 +26,8 @@ def scrape_adb():
                     "organization": "Asian Development Bank",
                     "deadline": "",
                     "description": text,
-                    "url": link.get("href")
+                    "url": link.get("href"),
+                    "source": "adb"
                 })
 
     except Exception as e:
