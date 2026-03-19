@@ -1,4 +1,7 @@
 import asyncio
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import init_db, save_tender
 from portal_db import init_portal_table
 from scrapers.uk import scrape_uk
