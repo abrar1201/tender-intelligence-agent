@@ -25,7 +25,8 @@ def scrape_uk():
                 continue
 
             title = title_tag.text.strip()
-            link = base_url + title_tag.get("href", "")
+            href = title_tag.get("href", "")
+            link = href if href.startswith("http") else base_url + href
 
             description = desc_tag.text.strip() if desc_tag else ""
 

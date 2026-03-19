@@ -34,6 +34,34 @@ def rank_tenders(tenders):
     )
 
 
+def deduplicate(tenders):
+    """
+    Remove duplicate tenders by URL first, then by title.
+    Keeps the first occurrence.
+    """
+    seen_urls = set()
+    seen_titles = set()
+    unique = []
+
+    for t in tenders:
+        url = (t.get("url") or "").strip().lower()
+        title = (t.get("title") or "").strip().lower()
+
+        if url and url in seen_urls:
+            continue
+        if title and title in seen_titles:
+            continue
+
+        if url:
+            seen_urls.add(url)
+        if title:
+            seen_titles.add(title)
+
+        unique.append(t)
+
+    return unique
+
+
 def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
     """
     Guarantees at least `per_source_min` tenders per source,
@@ -58,7 +86,7 @@ def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
             seen.add(key)
             deduped.append(t)
 
-    # Second pass — fill remaining slots with highest ranked remaining
+    # Second pass — fill remaining slots from highest ranked remaining
     already_selected = {t.get("url") or t.get("title") for t in deduped}
     remaining = [
         t for t in tenders
@@ -72,7 +100,6 @@ def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
 async def run():
     print("Starting Procurement Intelligence Bot")
 
-    # Initialize DBs
     init_db()
     init_portal_table()
 
@@ -136,7 +163,10 @@ async def run():
         if (t.get("title") or t.get("description"))
     ]
 
-    print(f"\nTotal tenders before filtering: {len(all_tenders)}")
+    # ✅ Deduplicate before processing — removes FTS duplicate pages etc.
+    before_dedup = len(all_tenders)
+    all_tenders = deduplicate(all_tenders)
+    print(f"\nTotal tenders before filtering: {len(all_tenders)} (removed {before_dedup - len(all_tenders)} duplicates)")
 
     # STEP 1: Calculate similarity + category
     for tender in all_tenders:
@@ -145,45 +175,34 @@ async def run():
         text = f"{title} {description}".strip()
         lower_text = text.lower()
 
-        # Category tagging — always runs regardless of similarity
+        # Category tagging — always runs
         tender["category"] = [
             k for k in ["erp", "crm", "hcm", "scm", "eam"]
             if k in lower_text
         ]
 
         if not text:
-            tender["similarity"] = None  # None triggers keyword-only path in is_relevant
+            tender["similarity"] = None
             continue
 
         try:
             tender["similarity"] = calculate_similarity(text)
         except Exception as e:
             print(f"Similarity error for '{title[:50]}': {e}")
-            tender["similarity"] = None  # None, not 0 — so keyword-only path fires in is_relevant
+            tender["similarity"] = None
 
     # STEP 2: Filter relevant ones
     relevant = [t for t in all_tenders if is_relevant(t)]
 
-    # Debug — source breakdown
+    # Debug
     print("\n--- SOURCE BREAKDOWN AFTER FILTER ---")
-    source_counts = Counter(t.get("source") for t in relevant)
-    print(source_counts)
-
-    print("\n--- UK/FTS SAMPLE ---")
-    found_sample = False
-    for t in relevant:
-        if t.get("source") in ("uk", "findatender"):
-            print(f"  source={t.get('source')} | sim={t.get('similarity')} | title={t.get('title', '')[:60]}")
-            found_sample = True
-    if not found_sample:
-        print("  NONE passed the filter")
+    print(Counter(t.get("source") for t in relevant))
 
     print("\n--- TOP 15 SOURCES (before balance) ---")
-    top15_unbalanced = rank_tenders(relevant)[:15]
-    print(Counter(t.get("source") for t in top15_unbalanced))
+    print(Counter(t.get("source") for t in rank_tenders(relevant)[:15]))
     print("--- END DEBUG ---\n")
 
-    # STEP 3: Rank with source balancing — guarantees UK/FTS are represented
+    # STEP 3: Rank with source balancing
     relevant = pick_top_with_source_balance(relevant, total=15, per_source_min=3)
 
     # STEP 4: Save to DB

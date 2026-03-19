@@ -11,7 +11,7 @@ def scrape_findatender():
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
-        for page in range(1, 4):  # scrape 3 pages
+        for page in range(1, 4):
             print(f"Scraping FTS page {page}...")
 
             url = f"{base_url}/Search/Results?page={page}"
@@ -29,15 +29,19 @@ def scrape_findatender():
                     continue
 
                 title = title_tag.text.strip()
-                link = base_url + title_tag.get("href", "")
+
+                # ✅ Only prepend base_url if href is a relative path
+                href = title_tag.get("href", "")
+                link = href if href.startswith("http") else base_url + href
+
                 description = desc_tag.text.strip() if desc_tag else ""
 
                 tenders.append({
                     "title": title,
                     "description": description,
                     "url": link,
-                    "source": "findatender"   # ✅ ADD THIS
-            })
+                    "source": "findatender"
+                })
 
         print(f"FTS scraped total: {len(tenders)}")
 
