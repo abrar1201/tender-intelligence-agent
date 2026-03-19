@@ -45,11 +45,13 @@ def send_email(tenders):
     sender = os.getenv("EMAIL_USER")
     password = os.getenv("EMAIL_PASS")
 
-    receiver = sender  # send to yourself
+    receivers = [
+    "hannahboden501@gmail.com",
+]
 
     msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
     msg["From"] = sender
-    msg["To"] = receiver
+    msg["To"] = ", ".join(receivers)
 
     try:
         print("Connecting to Gmail SMTP...")
@@ -61,7 +63,7 @@ def send_email(tenders):
         server.login(sender, password)
 
         print("Sending email...")
-        server.sendmail(sender, receiver, msg.as_string())
+        server.sendmail(sender, receivers, msg.as_string())
 
         server.quit()
 
