@@ -20,7 +20,6 @@ ENABLE_GLOBAL_DISCOVERY = True
 
 
 def rank_tenders(tenders):
-
     return sorted(
         tenders,
         key=lambda x: x.get("similarity", 0),
@@ -31,9 +30,11 @@ def rank_tenders(tenders):
 async def run():
     print("Starting Procurement Intelligence Bot")
 
+    # Initialize DBs
     init_db()
     init_portal_table()
 
+    # Run main scrapers in parallel
     uk_task = asyncio.to_thread(scrape_uk)
     ted_task = asyncio.to_thread(scrape_ted)
     fts_task = asyncio.to_thread(scrape_findatender)
@@ -48,10 +49,10 @@ async def run():
 
     discovered_links = []
 
+    # Global discovery 
     if ENABLE_GLOBAL_DISCOVERY:
 
         queries = [
-
             '"ERP implementation tender"',
             '"digital transformation RFP"',
             '"enterprise system procurement"',
@@ -63,19 +64,17 @@ async def run():
         ]
 
         for q in queries:
-
             links = search_duckduckgo(q)
             discovered_links.extend(links)
 
         new_portals = discover_portals(discovered_links)
-
         print("New portals discovered:", len(new_portals))
 
         portal_tenders = crawl_portals()
-
         print("Portal tenders scraped:", len(portal_tenders))
 
         # all_tenders.extend(portal_tenders)
+
         print("Checking SAM.gov...")
         all_tenders.extend(scrape_samgov())
 
@@ -90,36 +89,47 @@ async def run():
 
         print("Checking Canada Buyandsell...")
         all_tenders.extend(scrape_canada())
-        
+
         print("Checking GlobalTenders...")
         all_tenders.extend(scrape_globaltenders())
 
-    # similarity scoring
+    # STEP 1: Calculate similarity
     for tender in all_tenders:
 
-    # Apply filtering
-    filtered = [
-    t for t in all_tenders
-    if not is_excluded(t["title"] + " " + t["description"])
-]
-    filtered.sort(key=lambda x: x["similarity"], reverse=True)
-    relevant = filtered[:15]
+        text = (
+            tender.get("title", "") + " " +
+            tender.get("description", "")
+        )
 
-    tender["similarity"] = calculate_similarity(text)
+        try:
+            tender["similarity"] = calculate_similarity(text)
+        except Exception as e:
+            print("Similarity error:", e)
+            tender["similarity"] = 0
 
-    relevant = [t for t in all_tenders if t["similarity"] > 0.25]
+    # STEP 2: Filter relevant ones
+    relevant = [
+        t for t in all_tenders
+        if t.get("similarity", 0) > 0.25
+    ]
 
+    # STEP 3: Rank tenders
     relevant = rank_tenders(relevant)
 
-    # Save to DB
-    for tender in relevant:
+    # STEP 4: Take top 15
+    relevant = relevant[:15]
 
+    # STEP 5: Save to DB
+    for tender in relevant:
         save_tender(tender)
 
     print("Saved to database:", len(relevant))
 
+    # STEP 6: Send email
     if relevant:
         send_email(relevant)
+    else:
+        print("No relevant tenders found.")
 
     return relevant
 
