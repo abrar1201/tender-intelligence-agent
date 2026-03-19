@@ -49,7 +49,7 @@ def send_email(tenders):
 
     msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
     msg["From"] = "shahabrar1201@gmail.com"
-    msg["To"] = "receiver@gmail.com"  
+    msg["To"] = "hannahboden501@gmail.com.com"  
 
     try:
 
