@@ -15,10 +15,22 @@ def send_email(tenders):
         print("No relevant tenders to email.")
         return
 
-    html = """
-    <h2>New Procurement Opportunities</h2>
-    <hr>
-    """
+    html = f"""
+<html>
+<body style="font-family: Arial, sans-serif; background-color:#f4f6f8; padding:20px;">
+
+    <div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:10px;">
+
+        <h2 style="color:#2c3e50;">🚀 Procurement Intelligence Report</h2>
+
+        <p style="color:#555;">
+            📊 <b>{len(tenders)} New Opportunities Found</b><br>
+            🕒 Generated Automatically
+        </p>
+
+        <hr>
+
+"""
 
     for t in tenders:
 
@@ -31,14 +43,47 @@ def send_email(tenders):
             link = "https://" + link
 
         html += f"""
-        <p>
-        <b>{title}</b><br>
-        Organization: {org}<br>
-        Deadline: {deadline}<br>
-        <a href="{link}">🔗 View Tender</a>
-        </p>
+            <div style="
+                background:#ffffff;
+                border:1px solid #e0e0e0;
+                padding:15px;
+                margin-bottom:15px;
+                border-radius:8px;
+            ">
+
+                <h3 style="margin:0; color:#34495e;">💼 {title}</h3>
+
+                <p style="margin:8px 0; color:#555;">
+                    🏢 <b>{org}</b><br>
+                    📅 Deadline: {deadline}
+                </p>
+
+                <a href="{link}" 
+                    style="
+                    display:inline-block;
+                    padding:10px 15px;
+                    background:#007bff;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:5px;
+                    font-size:14px;
+                ">
+               🔗 View Tender
+            </a>
+
+        </div>
+    """
+    html += """
         <hr>
-        """
+
+        <p style="font-size:12px; color:#888;">
+            This is an automated procurement intelligence alert.
+        </p>
+
+    </div>
+</body>
+</html>
+"""
 
     msg = MIMEText(html, "html")
 

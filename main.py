@@ -18,7 +18,7 @@ from scrapers.adb import scrape_adb
 from scrapers.austender import scrape_austender
 from scrapers.canada import scrape_canada
 from scrapers.globaltenders import scrape_globaltenders
-from portal_classifier import is_relevant
+from ai.portal_classifier import is_relevant
 ENABLE_GLOBAL_DISCOVERY = True
 
 
