@@ -18,7 +18,7 @@ from scrapers.adb import scrape_adb
 from scrapers.austender import scrape_austender
 from scrapers.canada import scrape_canada
 from scrapers.globaltenders import scrape_globaltenders
-
+from portal_classifier import is_relevant
 ENABLE_GLOBAL_DISCOVERY = True
 
 
@@ -100,6 +100,7 @@ async def run():
     if (t.get("title") or t.get("description"))
 ]
     # STEP 1: Calculate similarity
+    # STEP 1: Calculate similarity + category
     for tender in all_tenders:
         try:
             title = tender.get("title") or ""
@@ -109,18 +110,28 @@ async def run():
 
             if not text:
                 tender["similarity"] = 0
+                tender["category"] = []
                 continue
 
+        # 🔥 AI similarity
             tender["similarity"] = calculate_similarity(text)
+
+        # 🔥 CATEGORY TAGGING (ADD HERE)
+            lower_text = text.lower()
+            tender["category"] = [
+                k for k in ["erp", "crm", "hcm", "scm", "eam"]
+                if k in lower_text
+            ]
 
         except Exception as e:
             print("Similarity error:", e)
             tender["similarity"] = 0
+            tender["category"] = []
 
-    # STEP 2: Filter relevant ones
+    # # STEP 2: Filter relevant ones
     relevant = [
         t for t in all_tenders
-        if t.get("similarity", 0) > 0.15
+        if is_relevant(t)
     ]
 
     # STEP 3: Rank tenders
