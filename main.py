@@ -84,7 +84,7 @@ def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
 
 SCRAPERS = {
     "uk":            scrape_uk,
-    "findatender":   scrape_findatender,
+    # "findatender":   scrape_findatender,
     "ted":           scrape_ted,
     "samgov":        scrape_samgov,
     # "worldbank":     scrape_worldbank,
