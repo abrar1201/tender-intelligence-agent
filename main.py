@@ -91,7 +91,7 @@ SCRAPERS = {
     # "adb":           scrape_adb,
     # "austender":     scrape_austender,
     "canada":        scrape_canada,
-    "globaltenders": scrape_globaltenders,
+    # "globaltenders": scrape_globaltenders,
 }
 
 
