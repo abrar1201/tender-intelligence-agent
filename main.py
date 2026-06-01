@@ -86,11 +86,11 @@ SCRAPERS = {
     "uk":            scrape_uk,
     "findatender":   scrape_findatender,
     # "ted":           scrape_ted,
-    "samgov":        scrape_samgov,
+    # "samgov":        scrape_samgov,
     # "worldbank":     scrape_worldbank,
     # "adb":           scrape_adb,
     # "austender":     scrape_austender,
-    "canada":        scrape_canada,
+    # "canada":        scrape_canada,
     # "globaltenders": scrape_globaltenders,
 }
 
