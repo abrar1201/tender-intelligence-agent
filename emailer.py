@@ -183,11 +183,11 @@ def send_email(tenders):
     password = os.getenv("EMAIL_PASS")
 
     receivers = [
-        "hannahboden501@gmail.com",
-        # "arjun.kondisetti@purplemavens.com",
-        # "srikanth@purplemavens.com",
-        # "sannadate@gmail.com"
-    ]
+    "hannahboden501@gmail.com",
+    "arjun.kondisetti@purplemavens.com",
+    "srikanth@purplemavens.com",
+    # "sannadate@gmail.com"
+]
 
     msg["Subject"] = f"{len(tenders)} New Procurement Opportunities"
     msg["From"] = sender
