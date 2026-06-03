@@ -121,6 +121,84 @@ PRIMARY_KEYWORDS = [
     # Polish
     "system zarządzania zasobami ludzkimi",  # HR system
     "system erp",                       # ERP system
+    
+    # ─────────────────────────────────────────────────────────────────────
+    # INDIA GeM / CPPP — Indian government IT procurement terminology
+    # GeM tenders use different phrasing than EU/UK tenders
+    # ─────────────────────────────────────────────────────────────────────
+
+    # ERP / Enterprise Software (Indian phrasing)
+    "enterprise resource planning software",
+    "erp software procurement",
+    "integrated software solution",
+    "integrated management system",
+    "enterprise application",
+
+    # HR / Payroll (Indian govt phrasing)
+    "human resource management software",
+    "hrms software",
+    "payroll management software",
+    "payroll system implementation",
+    "hr automation",
+    "service book management",
+    "leave management system",
+    "attendance management system",
+    "biometric attendance",
+
+    # Financial / Accounting
+    "financial accounting software",
+    "accounting software implementation",
+    "tally software",
+    "e-accounting",
+    "public financial management system",
+    "pfms",
+    "ifms",
+    "integrated financial management",
+
+    # Asset / Inventory
+    "asset management software",
+    "inventory management software",
+    "store management system",
+    "e-procurement software",
+    "procurement management system",
+
+    # Library
+    "library management software",
+    "library automation",
+    "koha library",
+    "e-library system",
+
+    # Fleet / Transport
+    "fleet management software",
+    "vehicle tracking system",
+    "gps tracking software",
+    "transport management software",
+
+    # ICT / IT Services (very common on GeM)
+    "software development",
+    "software implementation",
+    "it infrastructure",
+    "ict infrastructure",
+    "network management system",
+    "data centre",
+    "cloud service",
+    "saas",
+    "annual maintenance contract software",
+    "amc software",
+    "software license",
+    "erp amc",
+    "it support service",
+    "system integration",
+    "digital platform",
+    "e-governance",
+    "e governance software",
+    "mis software",
+    "management information system software",
+    "hospital management system",
+    "hms software",
+    "school management system",
+    "learning management system",
+    "lms software",
 ]
 
 COMPOUND_KEYWORDS = [
@@ -179,6 +257,14 @@ EXCLUSION_KEYWORDS = [
     "institutional strengthening", "capacity building",
     "country partnership", "project appraisal",
     "sector review",
+    
+    #Ireland-specific noise patterns
+    "hot meals", "school meals", "meal scheme",
+"vending machine", "pasteurizer",
+"photographic service", "photography service",
+"conferring", "av equipment", "audio visual",
+"machining suite", "cnc mill", "excavator",
+"electrical works", "pipe qualification",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -196,9 +282,11 @@ THRESHOLDS = {
     "adb":         {"high": 999,  "low": 0.30},  # keyword always required
     "canada":      {"high": 999,  "low": 0.28},
     "_default":    {"high": 0.42, "low": 0.30},
+    "gem":         {"high": 0.38, "low": 0.28},
+    "etenders_ie": {"high": 0.50, "low": 0.38},
 }
 
-DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov"}
+DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov","gem","etenders_ie"}
 
 
 def _keyword_match(text: str) -> bool:
@@ -262,7 +350,7 @@ def is_relevant(t: dict) -> bool:
         return True
 
     # Step 4 — keyword only for trusted sources
-    if kw_match and source in ("uk", "findatender", "ted", "samgov"):
+    if kw_match and source in ("uk", "findatender", "ted", "samgov","gem","etenders_ie"):
         if similarity is None or similarity >= 0.20:
             log("PASSED", f"keyword only ({matched_kw}), trusted source")
             return True

@@ -12,6 +12,8 @@ from portal_db import init_portal_table
 from scrapers.uk import scrape_uk
 from scrapers.ted import scrape_ted
 from scrapers.findatender import scrape_findatender
+from scrapers.gem import scrape_gem
+from scrapers.etenders_ireland import scrape_etenders_ireland
 from scrapers.search_discovery import search_duckduckgo
 from scrapers.portal_discovery import discover_portals
 from scrapers.portal_crawler import crawl_portals
@@ -83,8 +85,10 @@ def pick_top_with_source_balance(tenders, total=15, per_source_min=3):
 # ─────────────────────────────────────────────────────────────────────────────
 
 SCRAPERS = {
-    "uk":            scrape_uk,
-    "findatender":   scrape_findatender,
+    # "uk":            scrape_uk,
+    # "findatender":   scrape_findatender,
+    "gem":           scrape_gem,
+    "etenders_ie":  scrape_etenders_ireland,
     # "ted":           scrape_ted,
     # "samgov":        scrape_samgov,
     # "worldbank":     scrape_worldbank,
