@@ -92,7 +92,7 @@ SCRAPERS = {
     "etenders_ie":     scrape_etenders_ireland,
     "eusupply_uk":     scrape_eusupply_uk,
     # "ted":           scrape_ted,
-    # "samgov":        scrape_samgov,
+    "samgov":        scrape_samgov,
     # "worldbank":     scrape_worldbank,
     # "adb":           scrape_adb,
     # "austender":     scrape_austender,
