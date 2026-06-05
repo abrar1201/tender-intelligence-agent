@@ -72,6 +72,7 @@ def infer_route(tender):
         "austender": "AusTender",
         "Canada": "Canada Tender Portal",
         "globaltenders": "Global Tenders",
+        "eusupply_uk": "EU Supply UK",
     }
     return route_by_source.get(source, source or "Supplier Portal")
 
@@ -109,7 +110,7 @@ def build_table_rows(tenders):
         if link:
             source_evidence = (
                 f'<a href="{escape(link)}" '
-                'style="color:#8ea0ff; text-decoration:underline;">'
+                'style="color:#1a56db; text-decoration:underline;">'
                 f"{escape(title)}</a>"
             )
         else:
@@ -136,16 +137,16 @@ def build_email_html(tenders):
 
     return f"""
 <html>
-<body style="font-family: Arial, sans-serif; background-color:#1f1f1f; padding:20px; margin:0;">
-    <div style="max-width:1200px; margin:auto; background:#262626; padding:20px; border-radius:6px;">
-        <h2 style="color:#f2f2f2; margin:0 0 8px;">Procurement Intelligence Report</h2>
+<body style="font-family: Arial, sans-serif; background-color:#f5f5f5; padding:20px; margin:0;">
+    <div style="max-width:1200px; margin:auto; background:#ffffff; padding:20px; border-radius:6px;">
+        <h2 style="color:#1a1a1a; margin:0 0 8px;">Procurement Intelligence Report</h2>
 
-        <p style="color:#d8d8d8; margin:0 0 18px;">
+        <p style="color:#333333; margin:0 0 18px;">
             <b>{len(tenders)} New Opportunities Found</b><br>
             Generated automatically
         </p>
 
-        <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; table-layout:fixed; color:#f2f2f2; font-size:14px; line-height:1.35;">
+        <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; table-layout:fixed; color:#1a1a1a; font-size:14px; line-height:1.35;">
             <thead>
                 <tr>
                     <th style="border:1px solid #666; padding:10px 8px; text-align:left; width:15%;">Organisation</th>
@@ -163,7 +164,7 @@ def build_email_html(tenders):
             </tbody>
         </table>
 
-        <p style="font-size:12px; color:#bdbdbd; margin:18px 0 0;">
+        <p style="font-size:12px; color:#666666; margin:18px 0 0;">
             This is an automated procurement intelligence alert.
         </p>
     </div>

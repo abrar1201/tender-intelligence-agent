@@ -284,9 +284,10 @@ THRESHOLDS = {
     "_default":    {"high": 0.42, "low": 0.30},
     "gem":         {"high": 0.38, "low": 0.28},
     "etenders_ie": {"high": 0.50, "low": 0.38},
+    "eusupply_uk": {"high": 0.38, "low": 0.27},
 }
 
-DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov","gem","etenders_ie"}
+DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov","gem","etenders_ie","eusupply_uk"}
 
 
 def _keyword_match(text: str) -> bool:
