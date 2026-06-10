@@ -25,6 +25,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Download model if not cached
+        run: |
+          python - <<'EOF'
+          from sentence_transformers import SentenceTransformer
+          print("Downloading/loading model...")
+          SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+          print("Model ready.")
+          EOF
+
       - name: Run Tender Script
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
