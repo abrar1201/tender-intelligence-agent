@@ -285,9 +285,11 @@ THRESHOLDS = {
     "gem":         {"high": 0.38, "low": 0.28},
     "etenders_ie": {"high": 0.50, "low": 0.38},
     "eusupply_uk": {"high": 0.38, "low": 0.27},
+    "sell2wales": {"high": 0.38, "low": 0.27},
+    "procontract": {"high": 0.38, "low": 0.27},
 }
 
-DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov","gem","etenders_ie","eusupply_uk"}
+DEBUG_SOURCES = {"uk", "findatender", "ted", "samgov","gem","etenders_ie","eusupply_uk","sell2wales","procontract"}
 
 
 def _keyword_match(text: str) -> bool:
@@ -351,7 +353,7 @@ def is_relevant(t: dict) -> bool:
         return True
 
     # Step 4 — keyword only for trusted sources
-    if kw_match and source in ("uk", "findatender", "ted", "samgov","gem","etenders_ie"):
+    if kw_match and source in ("uk", "findatender", "ted", "samgov","gem","etenders_ie","eusupply_uk","sell2wales"):
         if similarity is None or similarity >= 0.20:
             log("PASSED", f"keyword only ({matched_kw}), trusted source")
             return True

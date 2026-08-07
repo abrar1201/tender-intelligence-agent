@@ -73,6 +73,8 @@ def infer_route(tender):
         "Canada": "Canada Tender Portal",
         "globaltenders": "Global Tenders",
         "eusupply_uk": "EU Supply UK",
+        "sell2wales": "Sell2Wales",
+        "procontract": "ProContract",
     }
     return route_by_source.get(source, source or "Supplier Portal")
 
@@ -180,8 +182,8 @@ def send_email(tenders):
 
     msg = MIMEText(build_email_html(tenders), "html")
 
-    sender = os.getenv("EMAIL_USER")
-    password = os.getenv("EMAIL_PASS")
+    sender = "shahabrar1201@gmail.com"
+    password = "lvxwlzmvetwcqowu"
 
     receivers = [
     "hannahboden501@gmail.com",

@@ -13,6 +13,8 @@ from scrapers.uk import scrape_uk
 from scrapers.ted import scrape_ted
 from scrapers.findatender import scrape_findatender
 from scrapers.eusupply_uk import scrape_eusupply_uk
+from scrapers.sell2wales import scrape_sell2wales
+from scrapers.proactis import scrape_procontract
 from scrapers.gem import scrape_gem
 from scrapers.etenders_ireland import scrape_etenders_ireland
 from scrapers.search_discovery import search_duckduckgo
@@ -89,10 +91,14 @@ SCRAPERS = {
     # "uk":            scrape_uk,
     # "findatender":   scrape_findatender,
     # "gem":           scrape_gem,
-    "etenders_ie":     scrape_etenders_ireland,
-    "eusupply_uk":     scrape_eusupply_uk,
+    # "etenders_ie":     scrape_etenders_ireland,
+    # "eusupply_uk":     scrape_eusupply_uk,
     # "ted":           scrape_ted,
-    "samgov":        scrape_samgov,
+    # "samgov":        scrape_samgov,
+    # "sell2wales":    scrape_sell2wales,
+    "procontract":   scrape_procontract,
+    # "etenders_ireland": scrape_etenders_ireland,
+    # "gem":           scrape_gem,
     # "worldbank":     scrape_worldbank,
     # "adb":           scrape_adb,
     # "austender":     scrape_austender,
